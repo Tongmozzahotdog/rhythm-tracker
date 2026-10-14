@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>90일 리듬 트래커</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2f4f1;--sf:#fff;--ink:#1d2830;--mu:#66737c;--ln:#d9dfdc;--ac:#1f4e6e;--ac2:#e3edf3;--am:#b8741a;--gn:#3a7d5a;--rd:#a8473f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#11171c;--sf:#192127;--ink:#e5ebee;--mu:#93a1aa;--ln:#2a353c;--ac:#8fbbd9;--ac2:#1f3340;--am:#e0a050;--gn:#74c19a;--rd:#e08a82}}
+:root[data-theme="dark"]{--bg:#11171c;--sf:#192127;--ink:#e5ebee;--mu:#93a1aa;--ln:#2a353c;--ac:#8fbbd9;--ac2:#1f3340;--am:#e0a050;--gn:#74c19a;--rd:#e08a82}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 'Noto Sans KR',system-ui,-apple-system,sans-serif}
+button{font:inherit;cursor:pointer}
+header,main{max-width:640px;margin:0 auto}
+header{padding:18px 16px 4px}
+main{padding:8px 16px 96px}
+h1{font:700 22px/1.3 'Gowun Batang',Georgia,serif;margin:0}
+.sub{color:var(--mu);font-size:13px}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--sf);border-top:1px solid var(--ln);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;border:0;background:none;color:var(--mu);font-size:12px;font-weight:500;padding:11px 0}
+nav button.on{color:var(--ac);font-weight:700;box-shadow:inset 0 2px var(--ac)}
+.c{background:var(--sf);border:1px solid var(--ln);border-radius:10px;padding:14px;margin:10px 0}
+.c.go{border-color:var(--gn)}
+label{display:block;font-size:13px;color:var(--mu);margin:12px 0 4px}
+.c>label:first-child{margin-top:0}
+input,textarea{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--ln);border-radius:8px;padding:9px 10px}
+textarea{min-height:64px;resize:vertical}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1;min-width:56px;font-size:14px;padding:9px 6px;border:1px solid var(--ln);background:var(--bg);color:var(--ink);border-radius:8px}
+.seg button.on{background:var(--ac);border-color:var(--ac);color:var(--bg)}
+.seg.en button{min-width:0;padding:9px 0}
+.strip{display:flex;gap:4px;overflow-x:auto;padding:6px 0}
+.d{flex:0 0 40px;text-align:center;border:1px solid var(--ln);border-radius:8px;padding:5px 0;font-size:12px;background:var(--sf);color:var(--mu)}
+.d b{display:block;font-size:15px}
+.d.has{color:var(--ink);border-color:var(--mu)}
+.d.blk{background:var(--ac2)}
+.d.alc{border-bottom:3px solid var(--am)}
+.d.sel{outline:2px solid var(--ac)}
+.st{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.st div{flex:1;min-width:82px;background:var(--ac2);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--mu)}
+.st b{display:block;font:700 18px 'Gowun Batang',serif;color:var(--ink)}
+.bd{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;background:var(--ac2);color:var(--ink)}
+.bd.es{background:var(--am);color:var(--bg)}
+.bd.ok{background:var(--gn);color:var(--bg)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.x{border:0;background:none;color:var(--rd);font-size:13px}
+.nv{border:0;background:none;color:var(--ac);font-weight:500;padding:8px 4px}
+.add{width:100%;padding:12px;border:1px dashed var(--ac);background:none;color:var(--ac);border-radius:10px;font-weight:500;margin:10px 0}
+.m{padding:8px 0;border-top:1px solid var(--ln)}
+</style>
+</head>
+<body>
+<header id="hd"></header>
+<main id="app"></main>
+<nav id="nav"></nav>
+<script>
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const pd=s=>{const a=s.split('-').map(Number);return new Date(a[0],a[1]-1,a[2])};
+const add=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const dif=(a,b)=>Math.round((a-b)/864e5);
+const WD='일월화수목금토',KEY='rhythm90';
+const N=new Date(),TODAY=new Date(N.getFullYear(),N.getMonth(),N.getDate());
+let START=TODAY;
+const TABS=[['log','오늘'],['week','주간'],['envy','부러움'],['works','완성물'],['esc','도피'],['cp','점검']];
+const TT={log:'오늘 기록',week:'주간 점검',envy:'부러움 분해',works:'완성물 로그',esc:'도피/학습 판별',cp:'30·60·90일 점검'};
+const OX=(a,b)=>[['O',a],['X',b]];
+const NUMS=[...Array(11).keys()].map(n=>[''+n,''+n]);
+let S=null,tab='log',sel='',selW=0,pend='',exp=false,sync='이 기기에 저장됨';
+const blank=()=>({v:1,start:'',logs:{},weeks:{},works:[],esc:[],cp:{},envy:[],u:0});
+function init(){START=S.start?pd(S.start):TODAY;sel=ymd(TODAY<START?START:TODAY);selW=Math.max(0,Math.min(12,Math.floor(dif(TODAY,START)/7)))}
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!S||!S.logs)S=blank();
+init();
+
+let dbDoc=null,busy=false,again=false,timer;
+function status(t){sync=t;const e=document.getElementById('sync');if(e)e.textContent=t}
+function save(){S.u=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}clearTimeout(timer);timer=setTimeout(push,900)}
+async function push(){if(!dbDoc)return;if(busy){again=true;return}busy=true;try{await dbDoc.set(JSON.parse(JSON.stringify(S)));status('계정에 저장됨')}catch(e){status('이 기기에만 저장됨')}busy=false;if(again){again=false;push()}}
+(async()=>{try{if(!window.claude||!window.claude.use)return;const db=await claude.use('db'),user=await claude.use('user');if(!db||!user)return;const id=await user.id();dbDoc=db.doc('data/users/'+id+'/tracker');const snap=await dbDoc.get(),r=snap.exists?snap.data():null;if(r&&r.logs&&(r.u||0)>(S.u||0)){S=JSON.parse(JSON.stringify(r));try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}init();render();status('계정에 저장됨')}else{await push()}}catch(e){}})();
+
+const gl=ds=>S.logs[ds]||{};
+const L=ds=>S.logs[ds]||(S.logs[ds]={});
+const late=t=>{if(!t)return false;const h=+t.slice(0,2);return h>=4&&h<14};
+function wk(i){let b=0,d=0,l=0;for(let k=0;k<7;k++){const x=gl(ymd(add(START,7*i+k)));if(x.block==='O')b++;if(x.drink==='O')d++;if(late(x.sleep))l++}const a=ymd(add(START,7*i)),z=ymd(add(START,7*i+6));return{b,d,l,a,z,w:S.works.filter(w=>w.date>=a&&w.date<=z).length}}
+function setp(p,v){const a=p.split('.');if(a[0]==='logs')L(a[1])[a[2]]=v;else if(a[0]==='weeks'){(S.weeks[a[1]]||(S.weeks[a[1]]={}))[a[2]]=v}else if(a[0]==='cp')S.cp[a[1]]=v;else if(a[0]==='start')S.start=v;else{const it=S[a[0]].find(x=>x.id===a[1]);if(it)it[a[2]]=v}save()}
+const seg=(p,o,v,c)=>`<div class="seg ${c||''}">${o.map(x=>`<button data-a="s" data-p="${p}" data-v="${esc(x[0])}" class="${v===x[0]?'on':''}">${esc(x[1])}</button>`).join('')}</div>`;
+const delb=(k,id)=>`<button class="x" data-a="del" data-k="${k}" data-id="${id}">${pend===id?'한 번 더 누르면 삭제':'삭제'}</button>`;
+const stat=(a,b)=>`<div>${a}<b>${b}</b></div>`;
+
+function vLog(){const d=pd(sel),x=gl(sel),s=wk(Math.min(12,Math.max(0,Math.floor(dif(d,START)/7)))),g=d.getDay(),kind='',P='logs.'+sel+'.';
+let strip='';for(let i=-13;i<=0;i++){const q=add(d,i),k=ymd(q),y=gl(k);strip+=`<button data-a="d" data-v="${k}" class="d ${(y.block||y.drink||y.sleep||y.wake)?'has':''} ${y.block==='O'?'blk':''} ${y.drink==='O'?'alc':''} ${k===sel?'sel':''}"><b>${q.getDate()}</b>${WD[g===q.getDay()&&i===0?q.getDay():q.getDay()]}</button>`}
+return `<div class="row"><button class="nv" data-a="n" data-v="-1">‹ 전날</button><div style="text-align:center"><b style="font:700 18px 'Gowun Batang',serif">${d.getMonth()+1}월 ${d.getDate()}일 ${WD[g]}</b><div class="sub">${kind}</div></div><button class="nv" data-a="n" data-v="1">다음날 ›</button></div>
+<div class="strip">${strip}</div><div class="sub">채운 칸은 작업 블록 한 날, 주황 밑줄은 술 마신 날입니다.</div>
+<div class="c"><div class="g3"><div><label>기상</label><input type="time" data-p="${P}wake" value="${esc(x.wake)}"></div><div><label>취침</label><input type="time" data-p="${P}sleep" value="${esc(x.sleep)}"></div><div><label>밤 폰 종료</label><input type="time" data-p="${P}phone" value="${esc(x.phone)}"></div></div>
+<label>술</label>${seg(P+'drink',OX('마심','안 마심'),x.drink)}<input type="text" data-p="${P}cups" placeholder="몇 잔, 몇 시까지 (선택)" value="${esc(x.cups)}" style="margin-top:8px">
+<label>작업 블록</label>${seg(P+'block',OX('했음','못 함'),x.block)}
+<label>끝난 뒤 에너지 (0~10)</label>${seg(P+'energy',NUMS,x.energy,'en')}
+<label>한 줄</label><textarea data-p="${P}note">${esc(x.note)}</textarea></div>
+<div class="c"><div class="sub">이번 주 ${s.a.slice(5).replace('-','/')} ~ ${s.z.slice(5).replace('-','/')}</div><div class="st">${stat('작업 블록',s.b+'/3')}${stat('술자리',s.d)}${stat('04시 이후 취침',s.l)}${stat('완성물',s.w)}</div></div>`}
+
+function vWeek(){const s=wk(selW),m=S.weeks[selW]||{},P='weeks.'+selW+'.';let ch='';for(let i=0;i<13;i++){const r=wk(i);ch+=`<button data-a="w" data-v="${i}" class="d ${i===selW?'sel':''} ${r.b>=2?'blk':''}" style="flex-basis:60px"><b>${i+1}주</b>${r.a.slice(5).replace('-','/')}</button>`}
+return `<div class="strip">${ch}</div><div class="sub">채운 칸은 작업 블록 주 2회 이상 한 주입니다.</div>
+<div class="c"><div class="sub">${s.a} ~ ${s.z}</div><div class="st">${stat('작업 블록',s.b+'/3')}${stat('술자리',s.d)}${stat('04시 이후 취침',s.l)}${stat('완성물',s.w)}</div>
+<label>첫 독자 전달</label>${seg(P+'rd',OX('했음','못 함'),m.rd)}
+<label>다시 하고 싶었던 것</label><textarea data-p="${P}lk">${esc(m.lk)}</textarea>
+<label>하기 싫었던 것</label><textarea data-p="${P}dk">${esc(m.dk)}</textarea>
+<label>다음 주 조정 1개</label><input type="text" data-p="${P}ad" value="${esc(m.ad)}"></div>`}
+
+function vEnvy(){return `<div class="sub">과정은 그 사람이 그 일을 하는 시간, 결과는 얻은 위치입니다. 비밀 검사는 아무도 모르고 인정이 없어도 그 과정을 원하는지 묻는 것입니다. 둘 다 원하면 시작 후보입니다.</div><button class="add" data-a="add" data-v="envy">부러움 추가</button>`+S.envy.map(e=>{const P='envy.'+e.id+'.';return `<div class="c ${e.po==='O'&&e.se==='O'?'go':''}"><div class="row">${e.po==='O'&&e.se==='O'?'<span class="bd ok">시작 후보</span>':'<span></span>'}${delb('envy',e.id)}</div>
+<label>대상</label><input type="text" data-p="${P}who" value="${esc(e.who)}"><label>과정</label><input type="text" data-p="${P}pr" value="${esc(e.pr)}"><label>결과</label><input type="text" data-p="${P}re" value="${esc(e.re)}">
+<label>과정만 줘도 원하나</label>${seg(P+'po',OX('원함','아님'),e.po)}<label>비밀 검사</label>${seg(P+'se',OX('원함','아님'),e.se)}
+<label>지금 할 수 있는 최소 행동</label><input type="text" data-p="${P}ac" value="${esc(e.ac)}"></div>`}).join('')}
+
+function vWorks(){const sm=['A','B','C'].map(f=>{const a=S.works.filter(w=>w.fm===f);return stat(f+' · '+a.length+'개','다시 '+a.filter(w=>w.ag==='O').length+'/'+a.length)}).join('');
+return `<div class="sub">포맷 A, B, C는 직접 정해서 씁니다. 소재 단계는 감정에서 먼 소재(1)부터 가까운 소재(3) 순입니다.</div><div class="st">${stat('전체',S.works.length+'개')}${sm}</div><button class="add" data-a="add" data-v="works">완성물 추가</button>`+S.works.map((w,i)=>{const P='works.'+w.id+'.';return `<div class="c"><div class="row"><b>#${S.works.length-i}</b>${delb('works',w.id)}</div>
+<label>날짜</label><input type="date" data-p="${P}date" value="${esc(w.date)}"><label>포맷</label>${seg(P+'fm',[['A','A'],['B','B'],['C','C']],w.fm)}
+<label>소재 단계</label>${seg(P+'st',[['1','단계 1'],['2','단계 2'],['3','단계 3']],w.st)}<label>톤</label>${seg(P+'tn',[['담담','담담'],['폭발','폭발'],['개그','개그']],w.tn)}
+<label>끝난 뒤 에너지 (0~10)</label>${seg(P+'en',NUMS,w.en,'en')}<label>다시 하고 싶은가</label>${seg(P+'ag',OX('하고 싶음','아님'),w.ag)}
+<label>몸 반응</label><input type="text" data-p="${P}bd" value="${esc(w.bd)}"><label>메모</label><textarea data-p="${P}me">${esc(w.me)}</textarea></div>`}).join('')}
+
+const judge=e=>{const v=[e.o,e.t,e.b];if(v.some(z=>!z))return['미입력',''];const n=v.filter(z=>z==='O').length;return n===0?['도피','es']:n===3?['학습','ok']:['혼합','']};
+function vEsc(){const cw=wk(Math.max(0,Math.min(12,Math.floor(dif(TODAY,START)/7)))),all=S.esc.filter(e=>judge(e)[0]==='도피').length,tw=S.esc.filter(e=>e.date>=cw.a&&e.date<=cw.z&&judge(e)[0]==='도피').length;
+return `<div class="sub">밤 탐색이 끝난 뒤 세 질문에 답하세요. 모두 아니오면 도피, 모두 예면 학습으로 표시합니다. 판정은 비난이 아니라 데이터입니다.</div><div class="st">${stat('이번 주 도피',tw)}${stat('전체 도피',all+'/'+S.esc.length)}</div><button class="add" data-a="add" data-v="esc">기록 추가</button>`+S.esc.map(e=>{const P='esc.'+e.id+'.',j=judge(e);return `<div class="c"><div class="row"><span class="bd ${j[1]}">${j[0]}</span>${delb('esc',e.id)}</div>
+<label>날짜</label><input type="date" data-p="${P}date" value="${esc(e.date)}"><label>무엇을 봤나</label><input type="text" data-p="${P}what" value="${esc(e.what)}">
+<label>산출물이 남았나</label>${seg(P+'o',OX('예','아니오'),e.o)}<label>끝 시각을 정했나</label>${seg(P+'t',OX('예','아니오'),e.t)}<label>끝난 뒤 나아졌나</label>${seg(P+'b',OX('예','아니오'),e.b)}</div>`}).join('')}
+
+function met(k){const end=add(START,k),cut=end<TODAY?end:TODAY,e=ymd(cut);let ws=0,bw=0,dw=0,rw=0;for(let i=0;i<13;i++){if(add(START,7*i+6)<=cut){ws++;const r=wk(i);if(r.b>=2)bw++;if(r.d<=1)dw++}if(add(START,7*i)<=cut&&(S.weeks[i]||{}).rd==='O')rw++}
+const lt=Object.keys(S.logs).filter(d=>d<=e&&late(S.logs[d].sleep)).length,w2=S.works.filter(w=>w.date&&w.date<=e);
+return{ws,bw,dw,rw,lt,days:Math.max(0,dif(cut,START)+1),wk:w2.length,end:ymd(end),done:end<=TODAY,fm:['A','B','C'].map(f=>{const a=w2.filter(w=>w.fm===f);return[f,a.length,a.filter(w=>w.ag==='O').length]})}}
+const mrow=(a,b,c,ok)=>`<div class="row m"><span>${a}<div class="sub">${c}</div></span><b>${b}${ok?' ✓':''}</b></div>`;
+function vCp(){const T={30:'3~4개',60:'7~8개',90:'10~12개'},H={30:'포맷 3개 확정',60:'하위 1개 중단',90:'1~2개 포맷 확정'};
+return [30,60,90].map(k=>{const m=met(k),pct=m.ws?Math.round(100*m.bw/m.ws):0;return `<div class="c"><div class="row"><b style="font:700 17px 'Gowun Batang',serif">${k}일 · ${m.end.slice(5).replace('-','/')}</b><span class="bd ${m.done?'ok':''}">${m.done?'지남':'진행 중'}</span></div><div class="sub">${m.days}일 경과 기준, 기록한 날만 집계합니다.</div>
+${mrow('작업 블록 주 2회 이상',m.ws?`${m.bw}/${m.ws}주 · ${pct}%`:'집계할 주 없음','기준 70% 이상',m.ws&&pct>=70)}
+${mrow('완성물 누적',m.wk+'개','기준 '+T[k],m.wk>=parseInt(T[k]))}
+${mrow('술자리 주 1회 이하',`${m.dw}/${m.ws}주`,'12주 중 8주 이상',m.ws&&m.dw/m.ws>=8/12)}
+${mrow('04시 이후 취침',m.lt+'회','월 1회 이하',m.lt<=Math.max(1,Math.ceil(m.days/30)))}
+${mrow('첫 독자 전달',m.rw+'회','12주 중 10회 이상',m.rw>=10)}
+${mrow('다시 하고 싶음',m.fm.map(f=>`${f[0]} ${f[2]}/${f[1]}`).join(' · '),'포맷별 비교','')}
+<label>이 구간의 결정 한 줄</label><input type="text" data-p="cp.${k}" placeholder="${H[k]}" value="${esc(S.cp[k])}"></div>`}).join('')+`<div class="c"><label>시작일</label><input type="date" data-p="start" value="${esc(S.start)}"><div class="sub" id="sync" style="margin-top:10px">${sync}</div><button class="add" data-a="cp">기록 백업 복사</button>${exp?`<textarea readonly data-sel="1" style="margin-top:8px;min-height:90px">${esc(JSON.stringify(S))}</textarea>`:''}<label>백업 복원</label><textarea data-r="1" placeholder="백업 텍스트를 붙여넣고 복원을 누르세요"></textarea><button class="add" data-a="imp" style="margin-bottom:0">복원</button></div>`}
+
+function render(){if(!S.start){document.getElementById('hd').innerHTML='<h1>90일 리듬 트래커</h1><div class="sub">수면, 음주, 작업 블록, 끌림을 90일 동안 기록합니다.</div>';document.getElementById('app').innerHTML=`<div class="c"><label>시작일</label><input type="date" id="sd" value="${ymd(TODAY)}"><button class="add" data-a="go" style="margin-bottom:0">이 날짜로 시작</button></div><div class="sub">기록은 사람마다 따로 저장되고 다른 사람에게 보이지 않습니다.</div>`;document.getElementById('nav').innerHTML='';return}const dd=dif(TODAY,START);document.getElementById('hd').innerHTML=`<h1>${TT[tab]}</h1><div class="sub">${dd<0?(START.getMonth()+1)+'/'+START.getDate()+' 시작 · '+(-dd)+'일 전':dd<90?(dd+1)+'일차 / 90일':'90일 완료'}</div>`;
+document.getElementById('app').innerHTML=({log:vLog,week:vWeek,envy:vEnvy,works:vWorks,esc:vEsc,cp:vCp})[tab]();
+document.getElementById('nav').innerHTML=TABS.map(t=>`<button data-a="t" data-v="${t[0]}" class="${t[0]===tab?'on':''}">${t[1]}</button>`).join('');
+const c=document.querySelector('.d.sel');if(c)c.scrollIntoView({inline:'center',block:'nearest'})}
+
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v;
+if(a==='s'){setp(b.dataset.p,b.classList.contains('on')?'':v);render()}
+else if(a==='t'){tab=v;pend='';exp=false;window.scrollTo(0,0);render()}
+else if(a==='d'){sel=v;render()}
+else if(a==='n'){sel=ymd(add(pd(sel),+v));render()}
+else if(a==='w'){selW=+v;render()}
+else if(a==='add'){const t=ymd(TODAY),m={envy:{who:'',pr:'',re:'',po:'',se:'',ac:''},works:{date:t,fm:'',st:'',tn:'',en:'',ag:'',bd:'',me:''},esc:{date:t,what:'',o:'',t:'',b:''}};S[v].unshift(Object.assign({id:uid()},m[v]));save();render()}
+else if(a==='del'){const id=b.dataset.id;if(pend===id){S[b.dataset.k]=S[b.dataset.k].filter(x=>x.id!==id);pend='';save()}else pend=id;render()}
+else if(a==='go'){const v2=document.getElementById('sd').value;if(v2){S.start=v2;save();init();render()}}
+else if(a==='imp'){try{const r=JSON.parse(document.querySelector('[data-r]').value);if(!r||!r.logs)throw 0;S=r;save();init();render();status('복원했습니다')}catch(x){status('복원할 수 없는 형식입니다')}}
+else if(a==='cp'){exp=true;try{navigator.clipboard.writeText(JSON.stringify(S)).catch(()=>{})}catch(x){}render()}});
+document.addEventListener('input',e=>{const t=e.target,p=t.dataset.p;if(p&&(t.tagName==='TEXTAREA'||t.type==='text'))setp(p,t.value)});
+document.addEventListener('change',e=>{const t=e.target,p=t.dataset.p;if(p&&!(t.tagName==='TEXTAREA'||t.type==='text')){setp(p,t.value);if(p==='start')init();render()}});
+document.addEventListener('focusin',e=>{if(e.target.dataset.sel)e.target.select()});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+render();
+</script>
+</body>
+</html>
